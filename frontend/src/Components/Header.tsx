@@ -4,7 +4,7 @@ import AlertModal from "./Modals/AlertModalBase";
 import ConfirmationModal from "./Modals/ConfirmationModal";
 import { recognizeText } from '../services/textService';
 
-const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType }) => {
+const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType, setIdDoc }) => {
   // State dan inisialisasi variabel
   const [file, setFile] = useState<Blob[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -67,14 +67,17 @@ const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType }) => {
     const selectedOption = selectedDocsType;
     const document_type = handleDocsType(selectedOption);
     const scanBtn = document.getElementById("scan-btn") as HTMLButtonElement;
-    console.log(file)
+    console.log(file[0])
+    console.log("file")
     if (file.length !== 0 && docsType !== "belumPilih") {
       scanBtn.disabled = true;
       setIsLoading(true);
       try {
         const result = await recognizeText(file, document_type);
+        console.log("hasil recognisi")
         console.log(result);
-        // setOcrText(result);
+        setOcrText(result["data_ekstraksi"]);
+        setIdDoc(result["_id"]);
         setIsLoading(false);
         scanBtn.disabled = false;
       } catch (error) {
@@ -126,7 +129,8 @@ const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType }) => {
             />
           </form>
           {/* Input file untuk memilih gambar */}
-          <input
+          <form>
+            <input
             className="hidden"
             type="file"
             id="file"
@@ -134,6 +138,8 @@ const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType }) => {
             multiple
             onChange={handleFileChange}
           />
+          </form>
+          
           {/* Tombol "Pilih Gambar" */}
           <input className="h-[35px] mr-3 bg-primary-main rounded-lg px-3 text-white cursor-pointer hover:bg-primary-hover" type="button"
             value="+ Pilih Gambar"
@@ -170,12 +176,6 @@ const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType }) => {
             </div>
           }
         </div>
-        {/* Tombol Submit */}
-        {/* {
-          docsType === "belumPilih" || !docsType
-            ? <input type='submit' className="h-[35px] bg-primary-main rounded-lg px-3 pt-1 text-white cursor-pointer hover:bg-primary-hover self-end" value='Submit' onClick={() => setShowSubmitAlertModal(true)} />
-            : <input type='submit' form={docsType} className="h-[35px] bg-primary-main rounded-lg px-3 pt-1 text-white cursor-pointer hover:bg-primary-hover self-end" value='Submit' />
-        } */}
       </div>
       {/* Modal konfirmasi reset */}
       <ConfirmationModal

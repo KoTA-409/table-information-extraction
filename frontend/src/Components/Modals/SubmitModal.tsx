@@ -1,31 +1,49 @@
+import { Button, Modal } from "flowbite-react";
 import React from "react";
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 
-const SubmitModal = ({ closeModal, handleSubmit }) => {
+export default function SubmitModal(props) {
+  const confirmAction = () => {
+    props.confirm();
+    props.onHide();
+  };
+
+  const closeModal = () => {
+    props.onHide();
+  };
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white p-6 rounded-lg">
-        <h2 className="text-lg font-bold mb-4">Submit Document</h2>
-        <p className="text-gray-800 mb-6">Please review the information before submitting the document.</p>
-        
-        {/* Render your form or additional information here */}
-        
-        <div className="flex justify-end">
-          <button
-            className="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2"
-            onClick={closeModal}
-          >
-            Cancel
-          </button>
-          <button
-            className="bg-green-500 text-white px-4 py-2 rounded-lg"
-            onClick={handleSubmit}
-          >
-            Submit
-          </button>
-        </div>
-      </div>
-    </div>
+    <>
+      <Modal
+        show={props.show}
+        size="md"
+        popup={true}
+        onClose={closeModal}
+      >
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
+            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+              Apakah Anda yakin akan {props.textConfirmation}
+            </h3>
+            <div className="flex justify-center gap-4">
+              <Button
+                color="failure"
+                onClick={confirmAction}
+              >
+                {props.btnYes}
+              </Button>
+              <Button
+                color="dark"
+                onClick={closeModal}
+              >
+                Tidak, batalkan
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+    </>
   );
-};
-
-export default SubmitModal;
+}

@@ -9,10 +9,11 @@ const FormBase = React.lazy(() => import("../Forms/FormBase"))
 interface Props {
   docsType?: string
   ocrText: OcrText[] | undefined
+  idDoc?: string
   finalDataSetter: any
 }
 
-const FormHandler = ({ docsType, ocrText, finalDataSetter }: Props) => {
+const FormHandler = ({ docsType, ocrText, idDoc, finalDataSetter }: Props) => {
   const suspenseText = <h2 className="text-2xl text-gray-800 dark:text-gray-300">Loading ...</h2>
   switch (docsType) {
     case "dokumenBaru":
@@ -27,7 +28,7 @@ const FormHandler = ({ docsType, ocrText, finalDataSetter }: Props) => {
     default:
         return (
             <Suspense fallback={suspenseText}>
-              <FormBase finalDataSetter={finalDataSetter} docsType={docsType} />
+              <FormBase ocrText={ocrText} finalDataSetter={finalDataSetter} docsType={docsType} idDoc={idDoc} />
             </Suspense>
           )
   }

@@ -16,13 +16,31 @@ const initialFormValue: FormValues = {
   tabel: [],
 };
 
-const FormBase = ({ finalDataSetter, docsType }) => {
+const FormBase = ({ ocrText, finalDataSetter, docsType, idDoc }) => {
   const [formData, setFormData] = useState<FormValues>(initialFormValue);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
   useEffect(() => {
     setFormData(initialFormValue);
   }, [docsType]);
+
+  useEffect(() => {
+    console.log("in form base")
+    console.log(ocrText)
+    if (ocrText) {
+      const updatedTable = ocrText.map((textItem) => {
+        const tableItem: TableItem = {};
+        Object.keys(textItem).forEach((key) => {
+          tableItem[key] = textItem[key];
+        });
+        return tableItem;
+      });
+
+      setFormData({
+        tabel: updatedTable,
+      });
+    }
+  }, [ocrText]);
 
   const handleChange = (
     idx: number,
@@ -72,15 +90,15 @@ const FormBase = ({ finalDataSetter, docsType }) => {
 
   const handleConfirmSubmit = async () => {
     // Send data to backend
-    const response = await postNewDocument(docsType, finalDataSetter);
+    const response = await postNewDocument(finalDataSetter, idDoc);
   
     // Handle the response from the backend
     if (response.status === 200) {
       // Success
-      console.log('Template submitted successfully!');
+      console.log('Data submitted successfully!');
     } else {
       // Error
-      console.log('Error submitting template');
+      console.log('Error submitting data');
     }
   };
   
@@ -133,17 +151,82 @@ const FormBase = ({ finalDataSetter, docsType }) => {
   };
 
   const handleTestButtonClick = async () => {
-    try {
-      const testData = await getAllDocument();
-      console.log(testData["data"]["data_ekstraksi"]); 
-      setFormData({
-        tabel: testData,
-      });
-    } catch (error) {
-      console.error('Error retrieving test data:', error);
-    }
+    const FormData = [
+      {
+        "No": 1,
+        "Jenis Materiil": "Radio AM/SSB",
+        "Satuan": "Set",
+        "Indeks OPS": 4,
+        "Kebut OPS": 6,
+        "Nyata": 0,
+        "Terdukung": 6,
+        "Kurang": 0,
+        "Keterangan": null
+      },
+      {
+        "No": 2,
+        "Jenis Materiil": "Radio Rig",
+        "Satuan": "Set",
+        "Indeks OPS": 0,
+        "Kebut OPS": 5,
+        "Nyata": 0,
+        "Terdukung": 0,
+        "Kurang": 5,
+        "Keterangan": null
+      },
+      {
+        "No": 3,
+        "Jenis Materiil": "Radio PRC-1077",
+        "Satuan": "Set",
+        "Indeks OPS": 14,
+        "Kebut OPS": 0,
+        "Nyata": 0,
+        "Terdukung": 0,
+        "Kurang": 0,
+        "Keterangan": null
+      },
+      {
+        "No": 4,
+        "Jenis Materiil": "Radio HT UHF",
+        "Satuan": "Set",
+        "Indeks OPS": 60,
+        "Kebut OPS": 40,
+        "Nyata": 20,
+        "Terdukung": 20,
+        "Kurang": 0,
+        "Keterangan": null
+      },
+      {
+        "No": 5,
+        "Jenis Materiil": "Repeater UHF",
+        "Satuan": "Set",
+        "Indeks OPS": 1,
+        "Kebut OPS": 2,
+        "Nyata": 0,
+        "Terdukung": 2,
+        "Kurang": 0,
+        "Keterangan": null
+      }
+    ]
+    
+    setFormData({
+      tabel: FormData,
+    });
+    // try {
+    //   const testData = await getAllDocument();
+    //   console.log(testData["data"]["data_ekstraksi"]); 
+    //   setFormData({
+    //     tabel: testData,
+    //   });
+    // } catch (error) {
+    //   console.error('Error retrieving test data:', error);
+    // }
   };
 
+  // if (!ocrText || ocrText.length === 0) {
+  //   return null; // Render nothing if ocrText is undefined or empty
+  // }
+  
   return (
     <form
       id="formBase"

@@ -23,6 +23,7 @@ const TIE = () => {
   // const [errorMessage, setErrorMessage] = useState("");
   const [finalData, setFinalData] = useState<any>();
   const [ocrText, setOcrText] = useState<OcrText[]>();
+  const [idDoc, setIdDoc] = useState("");
 
   // const [isSuccessToastActive, showSuccessToast] = useToast();
   // const [isErrorToastActive, showErrorToast] = useToast();
@@ -73,6 +74,7 @@ const TIE = () => {
         imageCallback={handleImage}
         docsTypeCallback={handleDocsType}
         setOcrText={setOcrText}
+        setIdDoc={setIdDoc}
         // submitCallback={handleSubmit}
         docsType={docsType}
       />
@@ -86,6 +88,7 @@ const TIE = () => {
             <Handler
               docsType={docsType}
               ocrText={ocrText}
+              idDoc={idDoc}
               finalDataSetter={setFinalData}
               // openSubmitModal={openSubmitModal}
             />
@@ -109,39 +112,7 @@ const TIE = () => {
 </div>
 
       </div>
-      {/* Confirmation Modal */}
-      {/* {showConfirmationModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg">
-            <h2 className="text-lg font-bold mb-4">Confirm Submission</h2>
-            <p className="text-gray-800 mb-6">Are you sure you want to submit the document?</p>
-            <div className="flex justify-end">
-              <button
-                className="bg-red-500 text-white px-4 py-2 rounded-lg mr-2"
-                onClick={() => setShowConfirmationModal(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="bg-green-500 text-white px-4 py-2 rounded-lg"
-                onClick={() => handleConfirmSubmit(docsName)}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )} */}
-
-      {/* Submit Modal */}
-      {/* {showSubmitModal && (
-        <SubmitModal
-          closeModal={() => setShowSubmitModal(false)}
-          handleSubmit={() => handleSubmit(docsName)}
-        />
-      )} */}
-
-      {/* Rest of the code... */}
+      
     </>
   );
 };
