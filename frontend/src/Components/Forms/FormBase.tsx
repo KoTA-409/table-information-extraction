@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ChangeEvent } from 'react';
+import React, { useState, useEffect } from 'react';
 import { postNewDocument } from '../../services/documentService';
 import { getAllDocument } from '../../services/getTest';
 import SubmitModal from "../Modals/SubmitModal";
@@ -16,8 +16,9 @@ const initialFormValue: FormValues = {
   tabel: [],
 };
 
-const FormBase = ({ ocrText, finalDataSetter, docsType, idDoc }) => {
+const FormBase = ({ ocrText, docsType, idDoc }) => {
   const [formData, setFormData] = useState<FormValues>(initialFormValue);
+  const [formValues, setFormValues] = useState({});
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
   useEffect(() => {
@@ -60,6 +61,8 @@ const FormBase = ({ ocrText, finalDataSetter, docsType, idDoc }) => {
     setFormData({
       tabel: updatedTable,
     });
+
+    setFormValues({ tabel: updatedTable });
   };
 
   const addNewTableRow = () => {
@@ -86,12 +89,16 @@ const FormBase = ({ ocrText, finalDataSetter, docsType, idDoc }) => {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     setShowSubmitModal(true);
+    handleConfirmSubmit();
   };
 
   const handleConfirmSubmit = async () => {
     // Send data to backend
-    const response = await postNewDocument(finalDataSetter, idDoc);
-  
+    console.log("form base try to put");
+    console.log(formValues);
+    console.log(idDoc);
+    const response = await postNewDocument(formValues["tabel"], idDoc);
+
     // Handle the response from the backend
     if (response.status === 200) {
       // Success
@@ -101,7 +108,6 @@ const FormBase = ({ ocrText, finalDataSetter, docsType, idDoc }) => {
       console.log('Error submitting data');
     }
   };
-  
 
   const getKeys = () => {
     // Return the list of headings based on the keys in the JSON
@@ -115,7 +121,7 @@ const FormBase = ({ ocrText, finalDataSetter, docsType, idDoc }) => {
     return (
       <tr>
         {keys.map((key) => (
-          <th key={key} className="min-w-50">
+          <th key={key} className="min-w-10">
             <div className="min-w-min">{key}</div>
           </th>
         ))}
@@ -130,7 +136,7 @@ const FormBase = ({ ocrText, finalDataSetter, docsType, idDoc }) => {
     return formData.tabel.map((item, index) => (
       <tr key={index}>
         {keys.map((key) => (
-          <td key={key} className="min-w-50">
+          <td key={key} className="min-w-10">
             <input
               type="text"
               value={item[key] || ''}
@@ -152,81 +158,15 @@ const FormBase = ({ ocrText, finalDataSetter, docsType, idDoc }) => {
 
   const handleTestButtonClick = async () => {
     const FormData = [
-      {
-        "No": 1,
-        "Jenis Materiil": "Radio AM/SSB",
-        "Satuan": "Set",
-        "Indeks OPS": 4,
-        "Kebut OPS": 6,
-        "Nyata": 0,
-        "Terdukung": 6,
-        "Kurang": 0,
-        "Keterangan": null
-      },
-      {
-        "No": 2,
-        "Jenis Materiil": "Radio Rig",
-        "Satuan": "Set",
-        "Indeks OPS": 0,
-        "Kebut OPS": 5,
-        "Nyata": 0,
-        "Terdukung": 0,
-        "Kurang": 5,
-        "Keterangan": null
-      },
-      {
-        "No": 3,
-        "Jenis Materiil": "Radio PRC-1077",
-        "Satuan": "Set",
-        "Indeks OPS": 14,
-        "Kebut OPS": 0,
-        "Nyata": 0,
-        "Terdukung": 0,
-        "Kurang": 0,
-        "Keterangan": null
-      },
-      {
-        "No": 4,
-        "Jenis Materiil": "Radio HT UHF",
-        "Satuan": "Set",
-        "Indeks OPS": 60,
-        "Kebut OPS": 40,
-        "Nyata": 20,
-        "Terdukung": 20,
-        "Kurang": 0,
-        "Keterangan": null
-      },
-      {
-        "No": 5,
-        "Jenis Materiil": "Repeater UHF",
-        "Satuan": "Set",
-        "Indeks OPS": 1,
-        "Kebut OPS": 2,
-        "Nyata": 0,
-        "Terdukung": 2,
-        "Kurang": 0,
-        "Keterangan": null
-      }
-    ]
-    
+      // Your test data here
+    ];
+
     setFormData({
       tabel: FormData,
     });
-    // try {
-    //   const testData = await getAllDocument();
-    //   console.log(testData["data"]["data_ekstraksi"]); 
-    //   setFormData({
-    //     tabel: testData,
-    //   });
-    // } catch (error) {
-    //   console.error('Error retrieving test data:', error);
-    // }
+    setFormValues({ tabel: FormData });
   };
 
-  // if (!ocrText || ocrText.length === 0) {
-  //   return null; // Render nothing if ocrText is undefined or empty
-  // }
-  
   return (
     <form
       id="formBase"

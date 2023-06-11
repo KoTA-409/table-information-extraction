@@ -49,22 +49,35 @@ const FormBaru = () => {
   const handleConfirmSubmit = async () => {
     // Close the submit modal
     setShowSubmitModal(false);
-
-    // Convert form state to JSON
-    const jsonData = JSON.stringify({ namaDokumen, KolomList });
+  
+    // Create the JSON object
+    const jsonPayload = {
+      nama_dokumen: namaDokumen,
+      jenis_tabel: "Umum",
+      daftar_kolom: KolomList.map((Kolom) => ({
+        nama_kolom: Kolom.value,
+        tipe_data: Kolom.type
+      }))
+    };
     
-    // Send data to backend
-    const response = await postNewTemplate(namaDokumen, jsonData);
-    
+    console.log("Form Baru #test")
+    console.log(jsonPayload);
+    console.log("JSON Type");
+    console.log(JSON.stringify(jsonPayload))
+    // Send data to the backend
+    const response = await postNewTemplate(jsonPayload);
+  
     // Handle the response from the backend
     if (response.status === 200) {
       // Success
       console.log('Template submitted successfully!');
+      window.location.reload();
     } else {
       // Error
       console.log('Error submitting template');
     }
   };
+  
 
   return (
     <>

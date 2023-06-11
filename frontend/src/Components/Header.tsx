@@ -1,24 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import AlertModal from "./Modals/AlertModalBase";
 import ConfirmationModal from "./Modals/ConfirmationModal";
 import { recognizeText } from '../services/textService';
 
 const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType, setIdDoc }) => {
-  // State dan inisialisasi variabel
   const [file, setFile] = useState<Blob[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [showSubmitAlertModal, setShowSubmitAlertModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
   const [docsTypeOptions, setDocsTypeOptions] = useState([
-    { value: "belumPilih", label: "Belum Memilih" }, 
+    { value: "belumPilih", label: "Belum Memilih" },
     { value: "dokumenBaru", label: "Menambah Jenis Dokumen Baru" },
-    { value: "surat_penerimaan_materil", label: "Surat Penerimaan Materiil" },
-    { value: "surat_kebutuhan_aset", label: "Surat Kebutuhan Aset" }
   ]);
   const [selectedDocsType, setSelectedDocsType] = useState(null);
 
+  console.log(docsTypeOptions);
+  useEffect(() => {
+    // Make API call to fetch options from the backend
+    const fetchDocsTypeOptions = async () => {
+      try {
+        const response = await fetch(`https://ocr.polban.studio/document-types/all`);
+        const data = await response.json();
+        const transformedOptions = data.map(option => ({
+          value: option.nama_dokumen.toLowerCase().replace(/\s/g, "_"),
+          label: option.nama_dokumen
+        }));
+        setDocsTypeOptions(prevOptions => [...prevOptions, ...transformedOptions]);
+      } catch (error) {
+        console.error("Error fetching docs type options:", error);
+      }
+    };
+
+    fetchDocsTypeOptions();
+  }, []);
   // Fungsi untuk meng-handle perubahan file gambar
   const handleFileChange = (ev) => {
     setFile(ev.target.files);

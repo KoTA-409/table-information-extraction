@@ -1,49 +1,50 @@
-import { Button, Modal } from "flowbite-react";
-import React from "react";
-import { HiOutlineExclamationCircle } from "react-icons/hi";
+import React from 'react';
 
-export default function SubmitModal(props) {
-  const confirmAction = () => {
-    props.confirm();
-    props.onHide();
-  };
+interface SubmitModalProps {
+  closeModal: () => void;
+  handleSubmit: () => void;
+}
 
-  const closeModal = () => {
-    props.onHide();
+const SubmitModal: React.FC<SubmitModalProps> = ({ closeModal, handleSubmit }) => {
+  const handleConfirm = () => {
+    handleSubmit();
+    closeModal();
   };
 
   return (
-    <>
-      <Modal
-        show={props.show}
-        size="md"
-        popup={true}
-        onClose={closeModal}
-      >
-        <Modal.Header />
-        <Modal.Body>
-          <div className="text-center">
-            <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
-            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-              Apakah Anda yakin akan {props.textConfirmation}
-            </h3>
-            <div className="flex justify-center gap-4">
-              <Button
-                color="failure"
-                onClick={confirmAction}
-              >
-                {props.btnYes}
-              </Button>
-              <Button
-                color="dark"
-                onClick={closeModal}
-              >
-                Tidak, batalkan
-              </Button>
-            </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto bg-opacity-50 bg-gray-900">
+      <div className="relative mx-auto max-w-2xl">
+        <div className="relative flex flex-col w-full bg-white border-0 rounded-lg shadow-lg outline-none focus:outline-none" style={{ zIndex: 3 }}>
+          <div className="flex items-start justify-between p-5 border-b border-solid rounded-t">
+            <h3 className="text-lg font-semibold">Confirmation</h3>
+            <button
+              className="p-1 ml-auto bg-transparent border-0 float-right text-3xl leading-none font-semibold outline-none focus:outline-none text-gray-500"
+              onClick={closeModal}
+            >
+              <span>×</span>
+            </button>
           </div>
-        </Modal.Body>
-      </Modal>
-    </>
+          <div className="relative p-6">
+            <p className="my-4 text-gray-600">Are you sure you want to submit?</p>
+          </div>
+          <div className="flex items-center justify-end p-6 border-t border-solid rounded-b">
+            <button
+              className="px-4 py-2 text-sm text-gray-500 bg-transparent border border-gray-500 rounded hover:bg-gray-500 hover:text-white focus:outline-none focus:ring-gray-500 focus:border-gray-500 mr-2"
+              onClick={closeModal}
+            >
+              Tidak
+            </button>
+            <button
+              className="px-4 py-2 text-sm text-green-500 bg-transparent border border-green-500 rounded hover:bg-green-500 hover:text-white focus:outline-none focus:ring-green-500 focus:border-green-500"
+              onClick={handleConfirm}
+            >
+              Ya
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
-}
+};
+
+export default SubmitModal;

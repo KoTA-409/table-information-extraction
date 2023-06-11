@@ -1,8 +1,8 @@
 import axios from "axios";
 
-export const postNewTemplate = async (document_name: string, body: any) => {
+export const postNewTemplate = async ( body: any) => {
   try {
-    const response = await axios.post(`http://localhost:8000/api/document?document_name=${document_name}`, body);
+    const response = await axios.post(`https://ocr.polban.studio/document-types`, body);
     
     return response;
   } catch (error) {
