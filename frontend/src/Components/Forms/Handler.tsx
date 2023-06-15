@@ -7,20 +7,14 @@ const FormKhusus = React.lazy(() => import("../Forms/FormKhusus"))
 // const FormPermohonanDukungan = React.lazy(() => import("../PermohonanDukungan/FormPermohonanDukungan"));
 // const FormKebutuhanAset = React.lazy(() => import("../KebutuhanAset/FormKebutuhanAset"));
 
-interface Props {
-  docsType?: string
-  ocrText: OcrText[] 
-  idDoc?: string
-  finalDataSetter: any
-}
 
-const FormHandler = ({ docsType, ocrText, idDoc, finalDataSetter }: Props) => {
+const FormHandler = ({ docsType, ocrText, idDoc, headerList, setOcrText, setIdDoc, submitCallback, skipRows }) => {
   const suspenseText = <h2 className="text-2xl text-gray-800 dark:text-gray-300">Loading ...</h2>
   switch (docsType) {
     case "dokumenBaru":
         return (
             <Suspense fallback={suspenseText}>
-            <FormBaru />
+            <FormBaru headerList={headerList} submitCallback={submitCallback} skipRows={skipRows}/>
             </Suspense>
         )
     case "belumPilih":
@@ -29,14 +23,14 @@ const FormHandler = ({ docsType, ocrText, idDoc, finalDataSetter }: Props) => {
     case "surat_penyerahan_barang":
       return (
         <Suspense fallback={suspenseText}>
-          <FormKhusus ocrText={ocrText} finalDataSetter={finalDataSetter} docsType={docsType} idDoc={idDoc}  />
+          <FormKhusus ocrText={ocrText} docsType={docsType} idDoc={idDoc} setOcrText={setOcrText} setIdDoc={setIdDoc} submitCallback={submitCallback} />
         </Suspense>
       )
       
     default:
         return (
             <Suspense fallback={suspenseText}>
-              <FormBase ocrText={ocrText} finalDataSetter={finalDataSetter} docsType={docsType} idDoc={idDoc} />
+              <FormBase ocrText={ocrText} docsType={docsType} idDoc={idDoc} setOcrText={setOcrText} setIdDoc={setIdDoc} submitCallback={submitCallback}/>
             </Suspense>
           )
   }

@@ -1,44 +1,49 @@
-import React, { ChangeEvent, FormEvent, useState } from 'react';
+import React, { ChangeEvent, FormEvent, useState, useEffect } from 'react';
 import { postNewTemplate } from "../../services/newTemplate";
 import SubmitModal from '../Modals/SubmitModal';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import AlertModal from "../Modals/AlertModalBase";
 
-interface Kolom {
-  type: string;
-  value: string;
-}
-
-const FormBaru = () => {
+const FormBaru = ({ headerList, submitCallback, skipRows }) => {
   const [namaDokumen, setNamaDokumen] = useState('');
-  const [KolomList, setKolomList] = useState<Kolom[]>([{ type: 'string', value: '' }]);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [headers, setHeaders] = useState<{ idx: number; nama_kolom: string; tipe_data: string }[]>([]);
+  const [showTypeAlertModal, setShowTypeAlertModal] = useState(false);
+  const [showDuplicateDocumentNameAlertModal, setShowDuplicateDocumentNameAlertModal] = useState(false);
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    setNamaDokumen(value);
+  console.log("headers")
+  console.log(headers)
+
+  useEffect(() => {
+    if (headerList) {
+      const filteredHeaderList = headerList.filter(header => header !== null && header !== undefined);
+      setHeaders(
+        filteredHeaderList.map((header, index) => ({ idx: index, nama_kolom: header, tipe_data: '' }))
+      );
+    }
+  }, [headerList]);
+
+  const handleChange = (index, e) => {
+    const updatedHeaders = [...headers];
+    updatedHeaders[index].nama_kolom = e.target.value;
+    setHeaders(updatedHeaders);
   };
 
-  const handleKolomChange = (index: number, event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = event.target;
-    setKolomList((prevKolomList) => {
-      const updatedKolomList = [...prevKolomList];
-      updatedKolomList[index][name] = value;
-      return updatedKolomList;
-    });
-  };  
-
-  const addKolom = () => {
-    setKolomList((prevKolomList) => [
-      ...prevKolomList,
-      { type: 'string', value: '' }
-    ]);
+  const handleDropdownChange = (index, e) => {
+    const updatedHeaders = [...headers];
+    updatedHeaders[index].tipe_data = e.target.value;
+    setHeaders(updatedHeaders);
   };
 
-  const removeKolom = (index: number) => {
-    setKolomList((prevKolomList) => {
-      const updatedKolomList = [...prevKolomList];
-      updatedKolomList.splice(index, 1);
-      return updatedKolomList;
-    });
+  const handleAddHeader = () => {
+    const updatedHeaders = [...headers, { idx: headers.length, nama_kolom: '', tipe_data: '' }];
+    setHeaders(updatedHeaders);
+  };
+
+  const handleHapusHeader = (index) => {
+    const updatedHeaders = headers.filter(header => header.idx !== index);
+    setHeaders(updatedHeaders);
   };
 
   const handleSubmit = (event: FormEvent) => {
@@ -50,31 +55,54 @@ const FormBaru = () => {
     // Close the submit modal
     setShowSubmitModal(false);
   
-    // Create the JSON object
-    const jsonPayload = {
-      nama_dokumen: namaDokumen,
-      jenis_tabel: "Umum",
-      daftar_kolom: KolomList.map((Kolom) => ({
-        nama_kolom: Kolom.value,
-        tipe_data: Kolom.type
-      }))
-    };
-    
-    console.log("Form Baru #test")
-    console.log(jsonPayload);
-    console.log("JSON Type");
-    console.log(JSON.stringify(jsonPayload))
-    // Send data to the backend
-    const response = await postNewTemplate(jsonPayload);
+    // Check if any header has an empty type
+    const hasEmptyType = headers.some((header) => header.tipe_data === '');
+    if (hasEmptyType) {
+      // Display the alert modal
+      setShowTypeAlertModal(true);
+      return;
+    }
   
-    // Handle the response from the backend
-    if (response.status === 200) {
-      // Success
-      console.log('Template submitted successfully!');
-      window.location.reload();
-    } else {
-      // Error
-      console.log('Error submitting template');
+    try {
+      // Create the JSON object
+      const jsonPayload = {
+        nama_dokumen: namaDokumen,
+        jenis_tabel: "Umum",
+        skiprows: skipRows,
+        daftar_kolom: headers
+      };
+  
+      // Send data to the backend
+      const response = await postNewTemplate(jsonPayload);
+  
+      // Check for "DuplicateDocumentName" error
+      if (response.data?.error === "Document name already exist!") {
+        setShowDuplicateDocumentNameAlertModal(true);
+        console.error('Error submitting template:');
+        toast.error('Error submitting template');
+      } else {
+        console.log('Template berhasil di submit!');
+        toast.success('Template berhasil di submit!', {
+          autoClose: 2000,
+          onClose: () => {
+            submitCallback(true);
+            window.location.reload();
+          }
+        });
+  
+        // Clear form data
+        setNamaDokumen('');
+        setHeaders([]);
+  
+        // Callback function after successful submission
+        if (submitCallback && typeof submitCallback === 'function') {
+          submitCallback();
+        }
+      }
+    } catch (error) {
+      // Handle any other errors
+      console.error('Error submitting template:', error);
+      toast.error('Error submitting template');
     }
   };
   
@@ -89,48 +117,45 @@ const FormBaru = () => {
             id="namaDokumen"
             name="namaDokumen"
             value={namaDokumen}
-            onChange={handleChange}
+            onChange={(e) => setNamaDokumen(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
+        {/* Header list container */}
         <div className="mb-4">
-          <label className="block mb-2 font-medium">List Kolom:</label>
-          {KolomList.map((Kolom, index) => (
-            <div key={index} className="flex items-center mb-2">
+          {headers.map((header, index) => (
+            <div key={index} className="flex mb-2">
               <input
                 type="text"
-                name="value"
-                value={Kolom.value}
-                onChange={(event) => handleKolomChange(index, event)}
-                className="w-1/2 px-4 py-2 mr-2 border border-gray-300 rounded focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                value={header.nama_kolom}
+                onChange={(e) => handleChange(index, e)}
+                className="w-2/3 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               />
               <select
-                name="type"
-                value={Kolom.type}
-                onChange={(event) => handleKolomChange(index, event)}
-                className="w-1/3 px-4 py-2 mr-2 border border-gray-300 rounded focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                value={header.tipe_data}
+                onChange={(e) => handleDropdownChange(index, e)}
+                className="w-1/3 ml-2 px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
+                <option value="">Pilih Tipe Data</option>
                 <option value="string">Teks</option>
                 <option value="int">Angka</option>
               </select>
-              {index > 0 && (
-                <button
-                  type="button"
-                  onClick={() => removeKolom(index)}
-                  className="px-4 py-2 text-sm text-red-500 bg-transparent border border-red-500 rounded hover:bg-red-500 hover:text-white focus:outline-none focus:ring-red-500 focus:border-red-500"
-                >
-                  Remove
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => handleHapusHeader(header.idx)}
+                className="ml-2 px-4 py-2 text-sm font-medium text-red-500 bg-transparent border border-red-500 rounded focus:outline-none hover:bg-red-100"
+              >
+                Hapus
+              </button>
             </div>
           ))}
           <button
             type="button"
-            onClick={addKolom}
-            className="px-4 py-2 text-sm text-blue-500 bg-transparent border border-blue-500 rounded hover:bg-blue-500 hover:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            onClick={handleAddHeader}
+            className="px-4 py-2 text-sm font-medium text-green-500 bg-transparent border border-green-500 rounded focus:outline-none hover:bg-green-100"
           >
-            Tambah Kolom
+            Add Header
           </button>
         </div>
 
@@ -149,6 +174,18 @@ const FormBaru = () => {
           handleSubmit={handleConfirmSubmit}
         />
       )}
+        <AlertModal
+          show={showTypeAlertModal}
+          onHide={() => setShowTypeAlertModal(false)}
+          textConfirmation="Silahkan pilih tipe data terlebih dahulu!"
+          btnYes="Ok"
+        />
+        <AlertModal
+          show={showDuplicateDocumentNameAlertModal}
+          onHide={() => setShowDuplicateDocumentNameAlertModal(false)}
+          textConfirmation="Nama Dokumen sudah tersedia sebagai pilihan."
+          btnYes="Ok"
+        />
     </>
   );
 };

@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-export const recognizeText = async (files, document_name: string ) => {
+export const recognizeHeader = async (files) => {
   try {
     if (!files)
       return alert('Tidak ada file yang dipilih');
@@ -11,14 +11,9 @@ export const recognizeText = async (files, document_name: string ) => {
     for (let i = 0; i < files.length; i++) {
       formData.append('file'+i, files[i]);
     }
-
-    formData.append('document_type', document_name);
-    for (var pair of formData.entries()) {
-      // console.log(pair[0]+ ', ' + pair[1]); 
-    }
     
   
-    const response = await axios.post('https://ocr.polban.studio/table', formData);
+    const response = await axios.post('https://ocr.polban.studio/document-types/extract-header', formData);
     const ocrData = response;
     
     return ocrData; 

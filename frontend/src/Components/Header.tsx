@@ -3,26 +3,28 @@ import Select from "react-select";
 import AlertModal from "./Modals/AlertModalBase";
 import ConfirmationModal from "./Modals/ConfirmationModal";
 import { recognizeText } from '../services/textService';
+import { recognizeHeader } from "../services/headerService";
 
-const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType, setIdDoc }) => {
+const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType, setIdDoc, setHeaderList, setSkipRows }) => {
   const [file, setFile] = useState<Blob[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [showSubmitAlertModal, setShowSubmitAlertModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState(false);
+  const [showDuplicateImageModal, setShowDuplicateImageModal] = useState(false);
   const [docsTypeOptions, setDocsTypeOptions] = useState([
     { value: "belumPilih", label: "Belum Memilih" },
     { value: "dokumenBaru", label: "Menambah Jenis Dokumen Baru" },
   ]);
-  const [selectedDocsType, setSelectedDocsType] = useState(null);
+  const [selectedDocsType, setSelectedDocsType] = useState("belumPilih");
 
-  console.log(docsTypeOptions);
   useEffect(() => {
     // Make API call to fetch options from the backend
     const fetchDocsTypeOptions = async () => {
       try {
         const response = await fetch(`https://ocr.polban.studio/document-types/all`);
         const data = await response.json();
+        console.log(data)
         const transformedOptions = data.map(option => ({
           value: option.nama_dokumen.toLowerCase().replace(/\s/g, "_"),
           label: option.nama_dokumen
@@ -35,6 +37,23 @@ const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType, setIdDo
 
     fetchDocsTypeOptions();
   }, []);
+
+  const renderEkstraksiHeaderButton = () => {
+    if (docsType === "dokumenBaru" || selectedDocsType === "dokumenBaru") {
+      return (
+        <button id="header-btn" className="h-[35px] bg-blue-500 rounded px-3 text-white hover:bg-blue-700" onClick={handleHeaderExtraction}>
+          Ekstraksi Header
+        </button>
+      );
+    } else {
+      return (
+        <button id="scan-btn" className="h-[35px] bg-blue-500 rounded px-3 text-white hover:bg-blue-700" onClick={handleRecognizeText}>
+          Mulai Ekstraksi
+        </button>
+      );
+    }
+  };
+
   // Fungsi untuk meng-handle perubahan file gambar
   const handleFileChange = (ev) => {
     setFile(ev.target.files);
@@ -42,7 +61,6 @@ const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType, setIdDo
     for (let i = 0; i < ev.target.files.length; i++) {
       images.push(URL.createObjectURL(ev.target.files[i]))
     }
-    console.log(images)
     imageCallback(images);
   }
 
@@ -62,11 +80,6 @@ const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType, setIdDo
     return docsType;
   }
 
-  // Fungsi untuk menambahkan opsi jenis dokumen
-  const addDocsTypeOption = (value, label) => {
-    setDocsTypeOptions(prevOptions => [...prevOptions, { value, label }]);
-  };
-
   // Fungsi untuk mereset state form
   const resetState = (ev) => {
     const types = document.getElementById("docsType") as HTMLSelectElement;
@@ -74,8 +87,10 @@ const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType, setIdDo
     imageCallback([]);
     setIsLoading(false);
     types.selectedIndex = 0;
-    setSelectedDocsType(null);
+    setSelectedDocsType("belumPilih");
     docsTypeCallback("belumPilih", "");
+    setOcrText([]);
+    setIdDoc("");
   }
 
   // Fungsi untuk memulai pemindaian teks
@@ -83,19 +98,19 @@ const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType, setIdDo
     const selectedOption = selectedDocsType;
     const document_type = handleDocsType(selectedOption);
     const scanBtn = document.getElementById("scan-btn") as HTMLButtonElement;
-    console.log(file[0])
-    console.log("file")
     if (file.length !== 0 && docsType !== "belumPilih") {
       scanBtn.disabled = true;
       setIsLoading(true);
       try {
         const result = await recognizeText(file, document_type);
-        console.log("hasil recognisi")
-        console.log(result);
-        setOcrText(result["data_ekstraksi"]);
-        setIdDoc(result["_id"]);
         setIsLoading(false);
         scanBtn.disabled = false;
+        if (result.data["error"] && result.data["error"] === "Image has been extracted!") {
+          setShowDuplicateImageModal(true);
+        } else {
+          setOcrText(result.data["data_ekstraksi"]);
+          setIdDoc(result.data["_id"]);
+        }
       } catch (error) {
         console.log(error);
       }
@@ -105,10 +120,30 @@ const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType, setIdDo
     }
   }
 
-  // Fungsi untuk menutup modal peringatan
-  const handleCloseAlertModal = () => {
-    setShowAlertModal(false);
-  }
+  const handleHeaderExtraction = async () => {
+    const headerBtn = document.getElementById("header-btn") as HTMLButtonElement;
+  
+    if (file.length !== 0 && docsType !== "belumPilih") {
+      headerBtn.disabled = true;
+      setIsLoading(true);
+      try {
+        const result = await recognizeHeader(file);
+        setIsLoading(false);
+        console.log("result")
+        console.log(result)
+        headerBtn.disabled = false;
+        setHeaderList(result.data["header_list"])
+         setSkipRows(result.data["skiprows"])
+        // setHeaderList(['NO URUT', 'NAMADAN KODEMATERIL', 'SATUAN', 'BANYAKNYA - ANGKA', 'BANYAKNYA - HURUF', 'HARGA - JUMLAH (Rp)', 'HARGA - KET'])
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      setIsLoading(false);
+      handleOpenAlertModal();
+    }
+  };
+  
 
   // Fungsi untuk membuka modal peringatan
   const handleOpenAlertModal = () => {
@@ -157,17 +192,16 @@ const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType, setIdDo
           </form>
           
           {/* Tombol "Pilih Gambar" */}
-          <input className="h-[35px] mr-3 bg-primary-main rounded-lg px-3 text-white cursor-pointer hover:bg-primary-hover" type="button"
+          <input className="h-[35px] mr-3 bg-blue-500 rounded px-3 text-white cursor-pointer hover:bg-blue-700" type="button"
             value="+ Pilih Gambar"
             onClick={browseFile} />
           {/* Tombol Reset */}
-          <button id="scan-btn" className="h-[35px] mr-3 bg-red-600 rounded-lg px-3 text-white hover:bg-primary-hover" onClick={() => setShowResetModal(true)}>
+          <button id="reset-btn" className="h-[35px] mr-3 bg-red-600 rounded px-3 text-white hover:bg-red-700" onClick={() => setShowResetModal(true)}>
             Reset
           </button>
           {/* Tombol "Mulai Scan" */}
-          <button id="scan-btn" className="h-[35px] bg-primary-main rounded-lg px-3 text-white hover:bg-primary-hover" onClick={handleRecognizeText}>
-            Mulai Scan
-          </button>
+          {renderEkstraksiHeaderButton()}
+
           {/* Loading indicator */}
           {isLoading &&
             <div id="loading" className="text-base ml-4 mt-2 italic self-end">
@@ -200,10 +234,14 @@ const Header = ({ imageCallback, docsTypeCallback, setOcrText, docsType, setIdDo
         textConfirmation='melakukan reset dari awal?'
         btnYes='Ya'
       />
-      {/* Modal peringatan saat submit */}
+      {/* // Modal peringatan saat submit */}
       <AlertModal show={showSubmitAlertModal} onHide={() => setShowSubmitAlertModal(false)} textConfirmation='Silahkan pilih jenis dokumen terlebih dahulu.' btnYes='Ok' />
-      {/* Modal peringatan saat tidak memilih jenis dokumen dan gambar */}
-      <AlertModal show={showAlertModal} onHide={handleCloseAlertModal} textConfirmation='Silahkan pilih jenis dokumen dan gambar terlebih dahulu.' btnYes='Ok' />
+
+      {/* // Modal peringatan saat tidak memilih jenis dokumen dan gambar */}
+      <AlertModal show={showAlertModal} onHide={() => setShowAlertModal(false)} textConfirmation='Silahkan pilih jenis dokumen dan gambar terlebih dahulu.' btnYes='Ok' />
+
+      {/* // Modal peringatan saat gambar sudah pernah disubmit */}
+      <AlertModal show={showDuplicateImageModal} onHide={() => setShowDuplicateImageModal(false)} textConfirmation='Gambar sudah pernah diekstrak.' btnYes='Ok' />
     </div>
   );  
 }

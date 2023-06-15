@@ -1,205 +1,92 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import SubmitModal from "../Modals/SubmitModal";
 import { postNewDocument } from '../../services/documentService';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-interface FormKhususProps {
-  ocrText: Record<string, any>;
-  finalDataSetter: (dataForm: Record<string, any>) => void;
-  docsType?: string;
-  idDoc?: string;
+
+interface NestedJsonFormProps {
+  ocrText: {
+    "No": number;
+    "Nama Materil": string;
+    "Jumlah (Angka)": string;
+    "Jumlah (Huruf)": string;
+    "Jumlah (Satuan)": string;
+    Seri?: string[];
+    Kelengkapan?: {
+      "Nama Materil": string;
+      "Jumlah (Angka)": string;
+    "Jumlah (Huruf)": string;
+    "Jumlah (Satuan)": string;
+    }[];
+  }[];
+  docsType: string;
+  idDoc: string;
+  submitCallback: any;
+  setOcrText:any; 
+  setIdDoc:any;
 }
 
-const FormKhusus = ({
+const FormKhusus: React.FC<NestedJsonFormProps> = ({
   ocrText,
-  finalDataSetter,
   docsType,
   idDoc,
-}: FormKhususProps) => {
-  const [dataForm, setData] = useState<Record<string, any>>({});
-  const [formValues, setFormValues] = useState<Record<string, any>>({});
+  submitCallback,
+  setOcrText,
+  setIdDoc
+}) => {
+  const [formData, setFormData] = useState<NestedJsonFormProps["ocrText"]>([]);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
+  console.log(formData);
+  console.log(formData["Jumlah"])
   useEffect(() => {
-    setData(ocrText);
+    setFormData(ocrText);
   }, [ocrText]);
 
   useEffect(() => {
-    // Reset dataForm to an empty object when docsType changes
-    setData({});
+    setFormData([]);
   }, [docsType]);
 
   const handleTestButtonClick = () => {
     const testData = [
-        [
-            {
-                "No": 1,
-                "Nama Materil": "RIGDMRBase Station",
-                "Jumlah": 10,
-                "Satuan": "Unit",
-                "Seri": [
-                    "511TWT1238",
-                    "511TWT1150511TWT1236511TWT1110",
-                    "511TWT1389511TWT1378.511TWT1286",
-                    "511TWT1306511TWT3475511TWT1286"
-                ],
-                "Kelengkapan": [
-                    { "Nama Materil": "a.PowerSuplay", "Jumlah": 10, "Satuan": "Unit" },
-                    { "Nama Materil": "b.KabelRG8", "Jumlah": 300, "Satuan": "Meter" },
-                    {
-                        "Nama Materil": "c.KonektorN-maleRG8",
-                        "Jumlah": 20,
-                        "Satuan": "Unit"
-                    },
-                    {
-                        "Nama Materil": "d.MountingAntena Omni TelexHygain",
-                        "Jumlah": 10,
-                        "Satuan": "Unit"
-                    },
-                    {
-                        "Nama Materil": "e.AntenaOmni Telexhygain400-470Mhz",
-                        "Jumlah": 10,
-                        "Satuan": "Unit"
-                    },
-                    {
-                        "Nama Materil": "f.DoubleClampAntenaOmni",
-                        "Jumlah": 20,
-                        "Satuan": "Unit"
-                    },
-                    { "Nama Materil": "g.Microphone", "Jumlah": 10, "Satuan": "Unit" }
-                ]
-            },
-            {
-                "No": 2,
-                "Nama Materil": "Radio HFSSBMotorolaVertex1700/SwitchAle",
-                "Jumlah": 4,
-                "Satuan": "Unit",
-                "Seri": ["819Q770096.819Q770095", "819Q770093819Q770094"],
-                "Kelengkapan": [
-                    {
-                        "Nama Materil": "a.RTVCPowerSupplay40A",
-                        "Jumlah": 4,
-                        "Satuan": "Unit"
-                    },
-                    { "Nama Materil": "b.Hand Microphone", "Jumlah": 4, "Satuan": "Unit" },
-                    { "Nama Materil": "c.Kabel Power", "Jumlah": 4, "Satuan": "Unit" },
-                    {
-                        "Nama Materil": "d.TiangAntenaTelescopic6meter",
-                        "Jumlah": 8,
-                        "Satuan": "Unit"
-                    },
-                    {
-                        "Nama Materil": "e.Tali SelingAntena Telescopis",
-                        "Jumlah": 8,
-                        "Satuan": "Unit"
-                    },
-                    {
-                        "Nama Materil": "f. Tatakan Tiang Telescopis",
-                        "Jumlah": 8,
-                        "Satuan": "Unit"
-                    },
-                    {
-                        "Nama Materil": "g.Antena HF Dipole Broadband",
-                        "Jumlah": 4,
-                        "Satuan": "Unit"
-                    },
-                    {
-                        "Nama Materil": "h.AntenaOmni Broadband",
-                        "Jumlah": 4,
-                        "Satuan": "Unit"
-                    },
-                    {
-                        "Nama Materil": "KableFeederRG830meterdegankonector",
-                        "Jumlah": 8,
-                        "Satuan": "Unit"
-                    },
-                    {
-                        "Nama Materil": "j.Coaxial CSW-210G",
-                        "Jumlah": 4,
-                        "Satuan": "Unit"
-                    },
-                    {
-                        "Nama Materil": "k.Coaxial AntenaSwitchCSW210dgnJumper",
-                        "Jumlah": 4,
-                        "Satuan": "Unit"
-                    },
-                    {
-                        "Nama Materil": "L.LightingAreesterSP-1000",
-                        "Jumlah": 4,
-                        "Satuan": "Unit"
-                    },
-                    { "Nama Materil": "m.KonektorSP1000", "Jumlah": 1, "Satuan": "Rol" }
-                ]
-            },
-            {
-                "No": 3,
-                "Nama Materil": "SolarCell Arjuna",
-                "Jumlah": 12,
-                "Satuan": "Unit"
-            }
-        ]
-        
-    ];      
-
-
-    setData(testData);
-  };
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
+      
+    ];
   
-    setData((prevDataForm) => ({
-      ...prevDataForm,
-      [name]: value,
-    }));
+    setFormData(testData);
   };
   
-  const renderData = (dataForm: Record<string, any> | undefined | null) => {
-    if (!dataForm) {
-      return null;
+
+  const handleChange = (
+    index: number,
+    field: string,
+    value: string | number
+  ) => {
+    const updatedData = [...formData];
+    if (field === "Seri") {
+      updatedData[index][field] = value ? (value as string).split(",") : [];
+    } else {
+      updatedData[index][field] = value;
     }
-
-    return Object.keys(dataForm).map((key, index) => {
-      const value = dataForm[key];
-      const valueType = typeof value;
-
-      if (key === "Seri" && Array.isArray(value)) {
-        return (
-          <div key={index} className="mb-4 flex items-center">
-            <label className="block w-32">{key}:</label>
-            <input
-              type="text"
-              name={key}
-              value={value.join(", ")}
-              onChange={handleChange}
-              className="px-3 py-2 border rounded bg-gray-100 flex-grow"
-            />
-          </div>
-        );
-      }
-
-      if (valueType === "object" && value !== null) {
-        return (
-          <div key={index} className="mb-4">
-            <p className="font-bold">{key}: </p>
-            <div className="ml-4">{renderData(value)}</div>
-          </div>
-        );
-      }
-
-      return (
-        <div key={index} className="mb-4 flex items-center">
-          <label className="w-32">{key}:</label>
-          <input
-            type="text"
-            name={key}
-            value={value || ""}
-            onChange={handleChange}
-            className="px-3 py-2 border rounded bg-gray-100 flex-grow"
-          />
-        </div>
-      );
-    });
+    setFormData(updatedData);
   };
+
+  const handleNestedChange = (
+    parentIndex: number,
+    nestedIndex: number,
+    field: string,
+    value: string | number
+  ) => {
+    const updatedData = [...formData];
+    if (!updatedData[parentIndex].Kelengkapan) {
+      updatedData[parentIndex].Kelengkapan = [];
+    }
+    if (updatedData[parentIndex].Kelengkapan[nestedIndex]) {
+      updatedData[parentIndex].Kelengkapan[nestedIndex][field] = value;
+    }
+    setFormData(updatedData);
+  };
+  
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -208,44 +95,178 @@ const FormKhusus = ({
   };
 
   const handleConfirmSubmit = async () => {
-    // Send formValues to the backend
-    console.log("data form");
-    console.log(dataForm);
-    console.log(" form data");
-    console.log(formValues);
-    const response = await postNewDocument(formValues, idDoc);
+    // Send
+    const response = await postNewDocument(formData, idDoc);
 
     // Handle the response from the backend
     if (response.status === 200) {
       // Success
+      toast.success('Data berhasil di submit!');
+      setFormData([]);
+      setOcrText([]);
+      setIdDoc("");
+      submitCallback(true);
       console.log("Data submitted successfully!");
+      window.location.reload();
     } else {
       // Error
-      console.log("Error submitting data");
+      const errorMessage = response.error.message || 'Error submitting data';
+      toast.error(errorMessage);
     }
   };
 
+  if (!ocrText || ocrText.length === 0) {
+      return null; // Render nothing if ocrText is undefined or empty
+    }
+
   return (
     <div>
-      <div className="mb-4">
+
+      <form onSubmit={handleSubmit} className="p-4">
+        {formData.map((item, index) => (
+          <div key={index} className="flex flex-wrap mb-4">
+            <h3 className="w-full text-lg font-bold">Item {index + 1}</h3>
+            <div className="w-1/2 pr-2 mt-2">
+              <label className="block mb-1 font-medium">No:</label>
+              <input
+                type="number"
+                value={item.No}
+                onChange={(e) => handleChange(index, "No", e.target.value)}
+                className="w-full px-2 py-1 border rounded"
+              />
+            </div>
+            <div className="w-1/2 pl-2 mt-2">
+              <label className="block mb-1 font-medium">Nama Materil:</label>
+              <input
+                type="text"
+                value={item["Nama Materil"]}
+                onChange={(e) => handleChange(index, "Nama Materil", e.target.value)}
+                className="w-full px-2 py-1 border rounded"
+              />
+            </div>
+            <div className="w-1/2 pr-2 mt-2">
+              <label className="block mb-1 font-medium">Angka:</label>
+              <input
+                type="text"
+                value={item["Jumlah (Angka)"]}
+                onChange={(e) => handleChange(index, "Jumlah (Angka)", e.target.value)}
+                className="w-full px-2 py-1 border rounded"
+              />
+            </div>
+            <div className="w-1/2 pl-2 mt-2">
+              <label className="block mb-1 font-medium">Satuan:</label>
+              <input
+                type="text"
+                value={item["Jumlah (Satuan)"]}
+                onChange={(e) => handleChange(index, "Jumlah (Satuan)", e.target.value)}
+                className="w-full px-2 py-1 border rounded"
+              />
+            </div>
+            <div className="w-1/2 pl-2 mt-2">
+              <label className="block mb-1 font-medium">Huruf:</label>
+              <input
+                type="text"
+                value={item["Jumlah (Huruf)"]}
+                onChange={(e) => handleChange(index, "Jumlah (Huruf)", e.target.value)}
+                className="w-full px-2 py-1 border rounded"
+              />
+            </div>
+            {item.Seri && (
+              <div className="w-full mt-2">
+                <label className="block mb-1 font-medium">Seri:</label>
+                <input
+                  type="text"
+                  value={item.Seri.join(",")}
+                  onChange={(e) => handleChange(index, "Seri", e.target.value)}
+                  className="w-full px-2 py-1 border rounded"
+                />
+              </div>
+            )}
+            {item.Kelengkapan && (
+              <div className="w-full mt-2">
+                <label className="block mb-1 font-medium">Kelengkapan:</label>
+                <ul>
+                  {item.Kelengkapan.map((nestedItem, nestedIndex) => (
+                    <li key={nestedIndex} className="mt-2">
+                      <div className="w-1/2 pr-2">
+                        <label className="block mb-1 font-medium">Nama Materil:</label>
+                        <input
+                          type="text"
+                          value={nestedItem["Nama Materil"]}
+                          onChange={(e) =>
+                            handleNestedChange(
+                              index,
+                              nestedIndex,
+                              "Nama Materil",
+                              e.target.value
+                            )
+                          }
+                          className="w-full px-2 py-1 border rounded"
+                        />
+                      </div>
+                      <div className="w-1/2 pl-2">
+                        <label className="block mb-1 font-medium">Angka:</label>
+                        <input
+                          type="text"
+                          value={nestedItem["Jumlah (Angka)"]}
+                          onChange={(e) =>
+                            handleNestedChange(
+                              index,
+                              nestedIndex,
+                              "Jumlah (Angka)",
+                              e.target.value
+                            )
+                          }
+                          className="w-full px-2 py-1 border rounded"
+                        />
+                      </div>
+                      <div className="w-1/2 pl-2">
+                        <label className="block mb-1 font-medium">Satuan:</label>
+                        <input
+                          type="text"
+                          value={nestedItem["Jumlah (Satuan)"]}
+                          onChange={(e) =>
+                            handleNestedChange(
+                              index,
+                              nestedIndex,
+                              "Jumlah (Satuan)",
+                              e.target.value
+                            )
+                          }
+                          className="w-full px-2 py-1 border rounded"
+                        />
+                      </div>
+                      <div className="w-1/2 pl-2">
+                        <label className="block mb-1 font-medium">Huruf:</label>
+                        <input
+                          type="text"
+                          value={nestedItem["Jumlah (Huruf)"]}
+                          onChange={(e) =>
+                            handleNestedChange(
+                              index,
+                              nestedIndex,
+                              "Jumlah (Huruf)",
+                              e.target.value
+                            )
+                          }
+                          className="w-full px-2 py-1 border rounded"
+                        />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        ))}
         <button
           type="button"
-          onClick={handleTestButtonClick}
-          className="px-4 py-2 text-sm text-green-500 bg-transparent border border-green-500 rounded hover:bg-green-500 hover:text-white focus:outline-none focus:ring-green-500 focus:border-green-500"
+          onClick={() => setShowSubmitModal(true)}
+          className="w-full py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600 focus:outline-none focus:bg-blue-600"
         >
-          Test
+          Submit
         </button>
-      </div>
-
-      <div>{renderData(dataForm)}</div>
-
-      <button
-        type="button"
-        onClick={() => setShowSubmitModal(true)}
-        className="px-4 py-2 text-sm text-blue-500 bg-transparent border border-blue-500 rounded hover:bg-blue-500 hover:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-      >
-        Submit
-      </button>
+      </form>
 
       {showSubmitModal && (
         <SubmitModal
@@ -253,6 +274,7 @@ const FormKhusus = ({
           handleSubmit={handleConfirmSubmit}
         />
       )}
+
     </div>
   );
 };

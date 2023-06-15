@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { postNewDocument } from '../../services/documentService';
-import { getAllDocument } from '../../services/getTest';
 import SubmitModal from "../Modals/SubmitModal";
-
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface TableItem {
   [key: string]: string | number | null;
@@ -16,9 +16,8 @@ const initialFormValue: FormValues = {
   tabel: [],
 };
 
-const FormBase = ({ ocrText, docsType, idDoc }) => {
+const FormBase = ({ ocrText, docsType, idDoc, setOcrText, setIdDoc, submitCallback }) => {
   const [formData, setFormData] = useState<FormValues>(initialFormValue);
-  const [formValues, setFormValues] = useState({});
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
   useEffect(() => {
@@ -26,8 +25,6 @@ const FormBase = ({ ocrText, docsType, idDoc }) => {
   }, [docsType]);
 
   useEffect(() => {
-    console.log("in form base")
-    console.log(ocrText)
     if (ocrText) {
       const updatedTable = ocrText.map((textItem) => {
         const tableItem: TableItem = {};
@@ -61,8 +58,6 @@ const FormBase = ({ ocrText, docsType, idDoc }) => {
     setFormData({
       tabel: updatedTable,
     });
-
-    setFormValues({ tabel: updatedTable });
   };
 
   const addNewTableRow = () => {
@@ -89,54 +84,54 @@ const FormBase = ({ ocrText, docsType, idDoc }) => {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     setShowSubmitModal(true);
-    handleConfirmSubmit();
   };
 
   const handleConfirmSubmit = async () => {
-    // Send data to backend
-    console.log("form base try to put");
-    console.log(formValues);
-    console.log(idDoc);
-    const response = await postNewDocument(formValues["tabel"], idDoc);
+    const response = await postNewDocument(formData["tabel"], idDoc);
 
-    // Handle the response from the backend
     if (response.status === 200) {
       // Success
-      console.log('Data submitted successfully!');
+      toast.success('Data berhasil di submit!', {
+        onClose: () => {
+          setFormData(initialFormValue);
+          setOcrText([]);
+          setIdDoc("");
+          submitCallback(true);
+          window.location.reload();
+        }
+      });
     } else {
       // Error
-      console.log('Error submitting data');
+      const errorMessage = response.error.message || 'Error submitting data';
+      toast.error(errorMessage);
     }
   };
 
   const getKeys = () => {
-    // Return the list of headings based on the keys in the JSON
     const keys = Object.keys(formData.tabel[0] || {});
     return keys;
   };
 
   const getHeader = () => {
-    // Return the header component of the table
     const keys = getKeys();
     return (
       <tr>
         {keys.map((key) => (
-          <th key={key} className="min-w-10">
+          <th key={key} className="min-w-min">
             <div className="min-w-min">{key}</div>
           </th>
         ))}
-        <th>Actions</th>
+        <th className="w-auto">Actions</th>
       </tr>
     );
   };
 
   const getRowsData = () => {
-    // Return the body part of the table
     const keys = getKeys();
     return formData.tabel.map((item, index) => (
       <tr key={index}>
         {keys.map((key) => (
-          <td key={key} className="min-w-10">
+          <td key={key} className="min-w-min">
             <input
               type="text"
               value={item[key] || ''}
@@ -144,9 +139,10 @@ const FormBase = ({ ocrText, docsType, idDoc }) => {
             />
           </td>
         ))}
-        <td>
+        <td className="w-auto">
           <button
             onClick={() => removeTableRow(index)}
+            type="button"
             className="px-4 py-2 text-sm text-red-500 bg-transparent border border-red-500 rounded hover:bg-red-500 hover:text-white focus:outline-none focus:ring-red-500 focus:border-red-500"
           >
             Hapus
@@ -164,10 +160,15 @@ const FormBase = ({ ocrText, docsType, idDoc }) => {
     setFormData({
       tabel: FormData,
     });
-    setFormValues({ tabel: FormData });
   };
 
+  if (!ocrText || ocrText.length === 0) {
+    return null;
+  }
+
   return (
+    <>
+     {/* <ToastContainer /> */}
     <form
       id="formBase"
       onSubmit={handleSubmit}
@@ -189,13 +190,6 @@ const FormBase = ({ ocrText, docsType, idDoc }) => {
             >
               Tambah Baris
             </button>
-            <button
-              type="button"
-              onClick={handleTestButtonClick}
-              className="px-4 py-2 text-sm text-green-500 bg-transparent border border-green-500 rounded hover:bg-green-500 hover:text-white focus:outline-none focus:ring-green-500 focus:border-green-500"
-            >
-              Test
-            </button>
           </div>
           <div className="mt-4">
             <button
@@ -210,8 +204,8 @@ const FormBase = ({ ocrText, docsType, idDoc }) => {
       {showSubmitModal && (
         <SubmitModal closeModal={() => setShowSubmitModal(false)} handleSubmit={handleConfirmSubmit} />
       )}
-
     </form>
+    </>
   );
 };
 

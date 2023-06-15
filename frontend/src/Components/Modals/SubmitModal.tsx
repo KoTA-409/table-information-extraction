@@ -16,7 +16,7 @@ const SubmitModal: React.FC<SubmitModalProps> = ({ closeModal, handleSubmit }) =
       <div className="relative mx-auto max-w-2xl">
         <div className="relative flex flex-col w-full bg-white border-0 rounded-lg shadow-lg outline-none focus:outline-none" style={{ zIndex: 3 }}>
           <div className="flex items-start justify-between p-5 border-b border-solid rounded-t">
-            <h3 className="text-lg font-semibold">Confirmation</h3>
+            <h3 className="text-lg font-semibold">Konfirmasi Submit</h3>
             <button
               className="p-1 ml-auto bg-transparent border-0 float-right text-3xl leading-none font-semibold outline-none focus:outline-none text-gray-500"
               onClick={closeModal}
@@ -25,7 +25,7 @@ const SubmitModal: React.FC<SubmitModalProps> = ({ closeModal, handleSubmit }) =
             </button>
           </div>
           <div className="relative p-6">
-            <p className="my-4 text-gray-600">Are you sure you want to submit?</p>
+            <p className="my-4 text-gray-600">Apakah anda yakin untuk melakukan Submit?</p>
           </div>
           <div className="flex items-center justify-end p-6 border-t border-solid rounded-b">
             <button

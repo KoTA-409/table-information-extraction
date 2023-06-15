@@ -4,13 +4,8 @@ import 'react-responsive-carousel/lib/styles/carousel.min.css';
 import Handler from "../Components/Forms/Handler";
 import Header from "../Components/Header";
 import { OcrText } from "../Typings/ocrTypings";
-import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-// import { postNewDocument } from "../services/documentService";
 import MapInteractionCSS from 'react-map-interaction';
-// import useModal from "../Hooks/useModal";
-// import { Toast } from "flowbite-react";
-// import useToast from "../Hooks/useToast";
-// import { IoCheckmarkSharp, IoCloseSharp } from "react-icons/io5";
+
 // @ts-ignore
 import styles from 'react-responsive-carousel/lib/styles/carousel.min.css';
 
@@ -20,15 +15,12 @@ const TIE = () => {
   const [imagePath, setImagePath] = useState<string[]>([]);
   const [docsType, setDocsType] = useState("belumPilih");
   const [docsName, setDocsName] = useState("");
-  // const [errorMessage, setErrorMessage] = useState("");
-  const [finalData, setFinalData] = useState<any>();
   const [ocrText, setOcrText] = useState<OcrText[]>();
   const [idDoc, setIdDoc] = useState("");
-
-  // const [isSuccessToastActive, showSuccessToast] = useToast();
-  // const [isErrorToastActive, showErrorToast] = useToast();
-  // const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  // const [showSubmitModal, setShowSubmitModal, openSubmitModal] = useModal();
+  const [headerList, setHeaderList] = useState([]);
+  const [skipRows, setSkipRows] = useState<number>(0);
+  console.log("header List :")
+  console.log(headerList)
 
   const handleImage = (img: string[]) => {
     setImagePath(img);
@@ -47,34 +39,30 @@ const TIE = () => {
     URL.revokeObjectURL(ev.target.src);
   };
 
-  // const handleSubmit = (document_name) => {
-  //   // Show the confirmation modal
-  //   setShowConfirmationModal(true);
-  // };
+  const handleSubmit = (state) => {
+    if (state) {
+      setImagePath([]);
+      setDocsType("belumPilih");
+      setDocsName("");
+      setOcrText([]);
+      setIdDoc("");
+      setHeaderList([]);
+      setSkipRows(0);
+      // Additional code here if needed
+    }
+  };
+  
 
-  // const handleConfirmSubmit = async (document_name) => {
-  //   // Close the confirmation modal
-  //   setShowConfirmationModal(false);
-
-  //   // Perform the actual submission
-  //   const response = await postNewDocument(document_name, finalData);
-
-  //   if (response.status === 400) {
-  //     setErrorMessage('Error: Duplicate document');
-  //     showErrorToast();
-  //   } else {
-  //     showSuccessToast();
-  //   }
-  // };
 
   return (
     <>
-      {/* Rest of the code... */}
       <Header
         imageCallback={handleImage}
         docsTypeCallback={handleDocsType}
         setOcrText={setOcrText}
         setIdDoc={setIdDoc}
+        setHeaderList={setHeaderList}
+        setSkipRows={setSkipRows}
         // submitCallback={handleSubmit}
         docsType={docsType}
       />
@@ -89,8 +77,11 @@ const TIE = () => {
               docsType={docsType}
               ocrText={ocrText}
               idDoc={idDoc}
-              finalDataSetter={setFinalData}
-              // openSubmitModal={openSubmitModal}
+              headerList={headerList}
+              setOcrText={setOcrText}
+              setIdDoc={setIdDoc}
+              submitCallback={handleSubmit}
+              skipRows={skipRows}
             />
           </div>
         </div>
